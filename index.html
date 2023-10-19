@@ -12,41 +12,42 @@
 <body class="container">
 
     <div class="row mt-4 g-4">
-        <div class="col-8">
+        <div class="col-md-8">
             <h1 class="mb-4">Film List</h1>
-
-            <ul class="list-group fs-5 me-5" id="film-list">
-                {{ range . }}
+            <ul class="list-group fs-5 me-auto" id="film-list">
                 {{ block "film-list-element" .}}
-          <li id="film-{{$.Id}}" class="list-group-item bg-primary d-flex justify-content-between align-items-start text-white">
-            <div class="me-auto">
-              <div class="fw-bold">
-                {{ $.Title }}
-              </div>
-              {{ $.Director }}
-            </div>
-            <button type="submit" class="btn text-white bg-danger rounded-pill my-auto"
-              hx-delete="/delete-film/{{$.Id}}"
-              hx-swap="delete"
-              hx-target="#film-{{$.Id}}"
-              hx-confirm="Are you sure?"
-            >X</button>
-          </li>
+                {{ range $item := .}}
+                <li id="film-{{$item.Id}}" class="list-group-item bg-primary d-flex justify-content-between align-items-start text-white">
+                <div class="me-auto">
+                  <div class="fw-bold">
+                    {{ $item.Title }}
+                  </div>
+                  {{ $item.Director }}
+                </div>
+                <button type="submit" class="btn text-white bg-danger rounded-pill my-auto"
+                  hx-delete="/delete-film/{{$item.Id}}"
+                  hx-swap="innerHTML"
+                  hx-target="#film-list"
+                  hx-confirm="Are you sure?"
+                >X</button>
+                </li>
+                {{ else }}
+                  <p>no films yet..</p>
                 {{ end }}
                 {{ end }}
-            </ul>
+          </ul>
         </div>
 
-        <div class="col-4">
+        <div class="col-md-4 g-4">
             <h1 class="mb-4">Add Film</h1>
-            <form hx-post="/add-film/" hx-target="#film-list" hx-swap="afterbegin">
+            <form hx-post="/add-film/" hx-target="#film-list" hx-swap="innerHTML">
                 <div class="mb-2">
                     <label for="film-title">Title</label>
-                    <input type="text" name="title" id="film-title" class="form-control" />
+                    <input type="text" name="title" id="film-title" class="form-control" autofocus/>
                 </div>
                 <div class="mb-3">
                     <label for="film-director">Director</label>
-                    <input type="text" name="director" id="film-director" class="form-control" />
+                    <input type="text" name="director" id="film-director" class="form-control"/>
                 </div>
 
                 <button type="submit" class="btn btn-primary">

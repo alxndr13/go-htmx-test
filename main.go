@@ -23,11 +23,12 @@ type Film struct {
 func main() {
 	fmt.Println("Starting Server on http://localhost:8000")
 
-	films := Films{{
-		Id:       uuid.NewString(),
-		Title:    "Feuer und Flamme",
-		Director: "WDR",
-	}}
+	// films := Films{{
+	// 	Id:       uuid.NewString(),
+	// 	Title:    "Feuer und Flamme",
+	// 	Director: "WDR",
+	// }}
+	films := Films{}
 
 	defaultHandler := func(w http.ResponseWriter, r *http.Request) {
 		tmpl := template.Must(template.ParseFiles("index.html"))
@@ -40,7 +41,11 @@ func main() {
 		tmpl := template.Must(template.ParseFiles("index.html"))
 		newFilm := Film{Id: uuid.NewString(), Title: title, Director: director}
 		films = append(films, newFilm)
-		tmpl.ExecuteTemplate(w, "film-list-element", newFilm)
+		err := tmpl.ExecuteTemplate(w, "film-list-element", films)
+		if err != nil {
+			fmt.Println("error", err)
+		}
+
 	}
 
 	deleteHandler := func(w http.ResponseWriter, r *http.Request) {
@@ -58,6 +63,8 @@ func main() {
 				break
 			}
 		}
+		fmt.Println(films)
+		tmpl.ExecuteTemplate(w, "film-list-element", films)
 	}
 
 	// define handlers
