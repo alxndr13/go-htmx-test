@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"html/template"
 	"log"
@@ -20,27 +21,34 @@ type Film struct {
 	Director string
 }
 
+var (
+	//go:embed pages/* base.html
+	html embed.FS
+)
+
 func main() {
 	fmt.Println("Starting Server on http://localhost:8000")
 
-	// films := Films{{
-	// 	Id:       uuid.NewString(),
-	// 	Title:    "Feuer und Flamme",
-	// 	Director: "WDR",
-	// }}
-	films := Films{}
+	films := Films{{
+		Id:       uuid.NewString(),
+		Title:    "Feuer und Flamme",
+		Director: "WDR",
+	}}
 
 	defaultHandler := func(w http.ResponseWriter, r *http.Request) {
-		tmpl := template.Must(template.ParseFiles("index.html"))
+		tmpl := template.Must(template.ParseFiles("base.html", "pages/films.html", "pages/footer.html"))
 		tmpl.Execute(w, films)
 	}
 
 	addHandler := func(w http.ResponseWriter, r *http.Request) {
 		title := r.PostFormValue("title")
 		director := r.PostFormValue("director")
-		tmpl := template.Must(template.ParseFiles("index.html"))
+
+		tmpl := template.Must(template.ParseFS(html, "pages/films.html"))
+
 		newFilm := Film{Id: uuid.NewString(), Title: title, Director: director}
 		films = append(films, newFilm)
+
 		err := tmpl.ExecuteTemplate(w, "film-list-element", films)
 		if err != nil {
 			fmt.Println("error", err)
@@ -49,7 +57,7 @@ func main() {
 	}
 
 	deleteHandler := func(w http.ResponseWriter, r *http.Request) {
-		tmpl := template.Must(template.ParseFiles("index.html"))
+		tmpl := template.Must(template.ParseFiles("pages/films.html", "pages/footer.html"))
 		uri, err := url.Parse(r.RequestURI)
 		if err != nil {
 			tmpl.ExecuteTemplate(w, "film-list-element", films)
@@ -67,10 +75,16 @@ func main() {
 		tmpl.ExecuteTemplate(w, "film-list-element", films)
 	}
 
+	aboutHandler := func(w http.ResponseWriter, r *http.Request) {
+		tmpl := template.Must(template.ParseFS(html, "base.html", "pages/about.html"))
+		tmpl.Execute(w, nil)
+	}
+
 	// define handlers
 	http.HandleFunc("/", defaultHandler)
 	http.HandleFunc("/add-film/", addHandler)
 	http.HandleFunc("/delete-film/", deleteHandler)
+	http.HandleFunc("/about", aboutHandler)
 
 	log.Fatal(http.ListenAndServe(":8000", nil))
 
